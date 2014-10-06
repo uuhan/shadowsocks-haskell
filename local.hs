@@ -18,12 +18,14 @@ import           GHC.IO.Handle.FD (stdout)
 import           Network.Socket hiding (recv)
 import           Network.Socket.ByteString (recv, sendAll)
 
+import System.Remote.Monitoring (forkServer)
 import Shadowsocks.Encrypt (getEncDec)
 import Shadowsocks.Util
 
 
 main :: IO ()
-main = withSocketsDo $ do
+main = do
+    forkServer "localhost" 8000
     config <- parseConfigOptions
     addrinfos <- getAddrInfo (Just (defaultHints {addrFlags = [AI_PASSIVE]}))
                              Nothing
