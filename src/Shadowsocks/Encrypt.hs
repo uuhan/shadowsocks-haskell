@@ -3,24 +3,24 @@ module Shadowsocks.Encrypt
   ( getEncDec
   ) where
 
-import           Control.Concurrent.MVar ( newEmptyMVar, isEmptyMVar
-                                         , putMVar, readMVar)
-import           Crypto.Hash.MD5 (hash)
-import           Data.Binary.Get (runGet, getWord64le)
-import           Data.ByteString (ByteString)
-import qualified Data.ByteString as S
-import qualified Data.ByteString.Char8 as C
-import qualified Data.ByteString.Lazy as L
-import qualified Data.HashMap.Strict as HM
-import           Data.IntMap.Strict (fromList, (!))
-import           Data.List (sortBy)
-import           Data.Maybe (fromJust)
-import           Data.Monoid ((<>))
-import           Data.Word (Word8, Word64)
-import           OpenSSL (withOpenSSL)
-import           OpenSSL.EVP.Cipher (getCipherByName, CryptoMode(..))
-import           OpenSSL.EVP.Internal (cipherInitBS, cipherUpdateBS)
-import           OpenSSL.Random (randBytes)
+import           Control.Concurrent.MVar (isEmptyMVar, newEmptyMVar, putMVar,
+                                          readMVar)
+import           Crypto.Hash.MD5         (hash)
+import           Data.Binary.Get         (getWord64le, runGet)
+import           Data.ByteString         (ByteString)
+import qualified Data.ByteString         as S
+import qualified Data.ByteString.Char8   as C
+import qualified Data.ByteString.Lazy    as L
+import qualified Data.HashMap.Strict     as HM
+import           Data.IntMap.Strict      (fromList, (!))
+import           Data.List               (sortBy)
+import           Data.Maybe              (fromJust)
+import           Data.Monoid             ((<>))
+import           Data.Word               (Word64, Word8)
+import           OpenSSL                 (withOpenSSL)
+import           OpenSSL.EVP.Cipher      (CryptoMode (..), getCipherByName)
+import           OpenSSL.EVP.Internal    (cipherInitBS, cipherUpdateBS)
+import           OpenSSL.Random          (randBytes)
 
 
 methodSupported :: HM.HashMap String (Int, Int)

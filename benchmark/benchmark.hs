@@ -1,13 +1,13 @@
 #!/usr/bin/env runhaskell
 {-# LANGUAGE OverloadedStrings #-}
-import Crypto.Hash.MD5 (hash)
-import Data.Binary.Get (runGet, getWord64le)
-import Data.ByteString (ByteString)
-import qualified Data.ByteString as S
+import           Crypto.Hash.MD5      (hash)
+import           Data.Binary.Get      (getWord64le, runGet)
+import           Data.ByteString      (ByteString)
+import qualified Data.ByteString      as S
 import qualified Data.ByteString.Lazy as L
-import Data.List (sortBy)
-import Data.IntMap.Strict (fromList, (!))
-import Data.Word (Word8, Word64)
+import           Data.IntMap.Strict   (fromList, (!))
+import           Data.List            (sortBy)
+import           Data.Word            (Word64, Word8)
 
 
 aPoem :: ByteString
