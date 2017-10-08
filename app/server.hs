@@ -49,9 +49,7 @@ main = do
             (encrypt, decrypt) <- getEncDec method password
             request <- decrypt encRequest
             let (_, destAddr, destPort, payload) =
-                    either (error . show . UnknownAddrType)
-                           id
-                           (unpackRequest request)
+                    either (error . show . UnknownAddrType) id (unpackRequest request)
             C.putStrLn $ "udp " <> destAddr <> ":" <> C.pack (show destPort)
             remoteAddr <- head <$>
                 getAddrInfo Nothing (Just $ C.unpack destAddr)
