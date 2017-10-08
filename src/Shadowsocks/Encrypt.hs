@@ -5,7 +5,6 @@ module Shadowsocks.Encrypt
 
 import           Control.Concurrent.MVar (isEmptyMVar, newEmptyMVar, putMVar,
                                           readMVar)
-import           Control.Monad           (when)
 import           Crypto.Hash.MD5         (hash)
 import           Data.Binary.Get         (getWord64le, runGet)
 import           Data.ByteString         (ByteString)
@@ -76,20 +75,35 @@ getSSLEncDec method password = do
     random_iv <- withOpenSSL $ randBytes 32
     let cipher_iv = S.take m1 random_iv
     let (key, _) = evpBytesToKey password m0 m1
-
+    cipherCtx <- newEmptyMVar
     decipherCtx <- newEmptyMVar
 
     cipherMethod <- fmap fromJust $ withOpenSSL $ getCipherByName method
     ctx <- cipherInitBS cipherMethod key cipher_iv Encrypt
-
-    let encrypt ""  = return ""
-        encrypt buf = withOpenSSL $ cipherUpdateBS ctx buf
-
+    let
+        encrypt "" = return ""
+        encrypt buf = do
+            empty <- isEmptyMVar cipherCtx
+            if empty
+                then do
+                    putMVar cipherCtx ()
+                    ciphered <- withOpenSSL $ cipherUpdateBS ctx buf
+                    return $ cipher_iv <> ciphered
+                else withOpenSSL $ cipherUpdateBS ctx buf
         decrypt "" = return ""
         decrypt buf = do
-            isEmptyMVar decipherCtx >>=
-              flip when (cipherInitBS cipherMethod key cipher_iv Decrypt >>= putMVar decipherCtx)
-            readMVar decipherCtx >>= withOpenSSL . flip cipherUpdateBS buf
+            empty <- isEmptyMVar decipherCtx
+            if empty
+                then do
+                    let decipher_iv = S.take m1 buf
+                    dctx <- cipherInitBS cipherMethod key decipher_iv Decrypt
+                    putMVar decipherCtx dctx
+                    if S.null (S.drop m1 buf)
+                        then return ""
+                        else withOpenSSL $ cipherUpdateBS dctx (S.drop m1 buf)
+                else do
+                    dctx <- readMVar decipherCtx
+                    withOpenSSL $ cipherUpdateBS dctx buf
 
     return (encrypt, decrypt)
 
