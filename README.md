@@ -1,4 +1,4 @@
-#shadowsocks-haskell
+# shadowsocks-haskell
 
 [![Hackage](https://img.shields.io/hackage/v/shadowsocks.svg)](https://hackage.haskell.org/package/shadowsocks)
 
