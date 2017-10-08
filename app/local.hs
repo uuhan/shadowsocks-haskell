@@ -1,4 +1,5 @@
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE RecordWildCards   #-}
 
 import           Conduit                  (Conduit, await, leftover, liftIO,
                                            yield, ($$), ($$+), ($$++), ($$+-),
@@ -47,13 +48,13 @@ initRemote encrypt = do
 main :: IO ()
 main = do
     hSetBuffering stdout NoBuffering
-    config <- parseConfigOptions
-    let localSettings = serverSettings (localPort config) "*"
-        remoteSettings = clientSettings (serverPort config)
-                                        (C.pack $ server config)
-    C.putStrLn $ "starting local at " <> C.pack (show $ localPort config)
+    Config{..} <- parseConfigOptions
+    let localSettings = serverSettings localPort "*"
+        remoteSettings = clientSettings serverPort
+                                        (C.pack server)
+    C.putStrLn $ "starting local at " <> C.pack (show $ localPort)
     runTCPServer localSettings $ \client -> do
-        (encrypt, decrypt) <- getEncDec (method config) (password config)
+        (encrypt, decrypt) <- getEncDec method password
         (clientSource, ()) <- appSource client $$+ initLocal =$ appSink client
         runTCPClient remoteSettings $ \appServer -> do
             (clientSource', ()) <-
