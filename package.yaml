@@ -1,0 +1,93 @@
+name: shadowsocks
+version: '1.20151028'
+synopsis: A fast SOCKS5 proxy that help you get through firewalls
+description: ! 'Shadowsocks implemented in Haskell. Original python version: <https://github.com/clowwindy/shadowsocks>'
+category: Web
+author: rnons
+maintainer: remotenonsense@gmail.com
+license: MIT
+homepage: https://github.com/rnons/shadowsocks-haskell
+git: git://github.com/rnons/shadowsocks-haskell.git
+bug-reports: https://github.com/rnons/shadowsocks-haskell/issues
+tested-with: GHC==7.10.2
+dependencies:
+  - base ==4.*
+  - bytestring >=0.9
+library:
+  source-dirs: src
+  exposed-modules:
+    - Shadowsocks.Encrypt
+    - Shadowsocks.Util
+  dependencies:
+    - aeson >=0.7
+    - binary >=0.7
+    - conduit-combinators >=1.0
+    - containers >=0.5
+    - cryptohash >=0.11
+    - directory
+    - HsOpenSSL >=0.11
+    - iproute >=1.4
+    - network >=2.6
+    - optparse-applicative >=0.11
+    - unordered-containers >=0.2
+executables:
+  ssserver:
+    main: server.hs
+    source-dirs: app
+    other-extensions:
+      - OverloadedStrings
+      - DeriveGeneric
+    dependencies:
+      - shadowsocks
+      - async >=2.0
+      - conduit >=1.2
+      - conduit-combinators >=1.0
+      - conduit-extra >=1.1
+      - network >=2.6
+      - streaming-commons >=0.1.11
+    when:
+      - condition: (os(windows)) && (arch(x86_64))
+        then:
+          ghc-options:
+            - -Wall
+            - -O2
+        else:
+          ghc-options:
+            - -Wall
+            - -O2
+            - -threaded
+  sslocal:
+    main: local.hs
+    source-dirs: app
+    other-extensions:
+      - OverloadedStrings
+      - DeriveGeneric
+    dependencies:
+      - shadowsocks
+      - async >=2.0
+      - conduit-combinators >=1.0
+      - conduit-extra >=1.1
+    when:
+      - condition: (os(windows)) && (arch(x86_64))
+        then:
+          ghc-options:
+            - -Wall
+            - -O2
+        else:
+          ghc-options:
+            - -Wall
+            - -O2
+            - -threaded
+tests:
+  test:
+    main: test.hs
+    ghc-options:
+      - -Wall
+    dependencies:
+      - binary >=0.7
+      - containers >=0.5
+      - cryptohash >=0.11
+      - process >=1.1
+      - HUnit >=1.2
+data-files:
+  - config.json

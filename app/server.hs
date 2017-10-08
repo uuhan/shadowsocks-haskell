@@ -1,4 +1,5 @@
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE RecordWildCards   #-}
 
 import           Conduit                   (Sink, await, liftIO, ($$), ($$+),
                                             ($$+-), (=$))
@@ -6,7 +7,7 @@ import           Control.Applicative       ((<$>))
 import           Control.Concurrent        (forkIO)
 import           Control.Concurrent.Async  (race_)
 import           Control.Exception         (throwIO)
-import           Control.Monad             (forever)
+import           Control.Monad             (forever, void)
 import           Data.ByteString           (ByteString)
 import qualified Data.ByteString.Char8     as C
 import           Data.Conduit              (catchC)
@@ -37,15 +38,15 @@ initRemote decrypt = await >>=
 main :: IO ()
 main = do
     hSetBuffering stdout NoBuffering
-    config <- parseConfigOptions
-    let localSettings = serverSettings (serverPort config) "*"
-    C.putStrLn $ "starting server at " <> C.pack (show $ serverPort config)
+    Config{..} <- parseConfigOptions
+    let localSettings = serverSettings serverPort "*"
+    C.putStrLn $ "starting server at " <> C.pack (show serverPort)
 
-    udpSocket <- bindPortUDP (serverPort config) "*"
-    forkIO $ forever $ do
+    udpSocket <- bindPortUDP serverPort "*"
+    void $ forkIO $ forever $ do
         (encRequest, sourceAddr) <- recvFrom udpSocket 65535
         forkIO $ do
-            (encrypt, decrypt) <- getEncDec (method config) (password config)
+            (encrypt, decrypt) <- getEncDec method password
             request <- decrypt encRequest
             let (_, destAddr, destPort, payload) =
                     either (error . show . UnknownAddrType)
@@ -65,7 +66,7 @@ main = do
             close remote
 
     runTCPServer localSettings $ \client -> do
-        (encrypt, decrypt) <- getEncDec (method config) (password config)
+        (encrypt, decrypt) <- getEncDec method password
         (clientSource, (host, port)) <-
             appSource client $$+
                 initRemote decrypt `catchC` \e ->

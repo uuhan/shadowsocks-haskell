@@ -4,6 +4,7 @@ import           Conduit                  (Conduit, await, leftover, liftIO,
                                            yield, ($$), ($$+), ($$++), ($$+-),
                                            (=$))
 import           Control.Concurrent.Async (race_)
+import           Control.Monad            (void)
 import           Data.ByteString          (ByteString)
 import qualified Data.ByteString          as S
 import qualified Data.ByteString.Char8    as C
@@ -20,7 +21,7 @@ import           Shadowsocks.Util
 
 initLocal :: Conduit ByteString IO ByteString
 initLocal = do
-    await
+    void $ await
     yield "\x05\x00"
     await >>= maybe (return ()) (\request -> do
         let (addrType, destAddr, destPort, _) =

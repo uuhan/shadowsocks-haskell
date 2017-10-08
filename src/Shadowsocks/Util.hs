@@ -55,6 +55,7 @@ instance FromJSON Config where
                                   <*> v .: "password"
                                   <*> v .: "timeout"
                                   <*> v .: "method"
+    parseJSON _ = error "object"
 
 data Options = Options
     { _server     :: Maybe String
