@@ -51,12 +51,12 @@ main = do
             let (_, destAddr, destPort, payload) =
                     either (error . show . UnknownAddrType) id (unpackRequest request)
             C.putStrLn $ "udp " <> destAddr <> ":" <> C.pack (show destPort)
-            remoteAddr <- head <$>
+            AddrInfo{..} <- head <$>
                 getAddrInfo Nothing (Just $ C.unpack destAddr)
                                     (Just $ show destPort)
 
-            remote <- socket (addrFamily remoteAddr) Datagram defaultProtocol
-            sendAllTo remote payload (addrAddress remoteAddr)
+            remote <- socket addrFamily Datagram defaultProtocol
+            sendAllTo remote payload addrAddress
             (packet', sockAddr) <- recvFrom remote 65535
             let packed = packSockAddr sockAddr
             packet <- encrypt $ packed <> packet'
