@@ -1,7 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 module Shadowsocks.Encrypt
-  ( getEncDec
-  ) where
+  ( getEncDec)
+  where
 
 import           Control.Concurrent.MVar (isEmptyMVar, newEmptyMVar, putMVar,
                                           readMVar)
@@ -75,6 +75,7 @@ getSSLEncDec method password = do
     random_iv <- withOpenSSL $ randBytes 32
     let cipher_iv = S.take m1 random_iv
     let (key, _) = evpBytesToKey password m0 m1
+
     cipherCtx <- newEmptyMVar
     decipherCtx <- newEmptyMVar
 
@@ -85,15 +86,19 @@ getSSLEncDec method password = do
         encrypt buf = do
             empty <- isEmptyMVar cipherCtx
             if empty
+                -- | 第一次加密数据带上 **cipher_iv**
                 then do
                     putMVar cipherCtx ()
                     ciphered <- withOpenSSL $ cipherUpdateBS ctx buf
                     return $ cipher_iv <> ciphered
                 else withOpenSSL $ cipherUpdateBS ctx buf
+
         decrypt "" = return ""
         decrypt buf = do
             empty <- isEmptyMVar decipherCtx
             if empty
+                -- | 第一次接收到加密数据，从加密字串头部取得**cipher_iv**
+                -- 作为 **decipher_iv**, 保存 CipherCtx 解密接下来的数据
                 then do
                     let decipher_iv = S.take m1 buf
                     dctx <- cipherInitBS cipherMethod key decipher_iv Decrypt
