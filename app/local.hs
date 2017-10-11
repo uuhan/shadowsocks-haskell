@@ -1,9 +1,10 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RecordWildCards   #-}
+module Main (main) where
 
 import           Conduit                  (Conduit, await, leftover, liftIO,
                                            yield, ($$), ($$+), ($$++), ($$+-),
-                                           (=$))
+                                           (=$=))
 import           Control.Concurrent.Async (race_)
 import           Control.Monad            (void)
 import           Data.ByteString          (ByteString)
@@ -55,10 +56,10 @@ main = do
     C.putStrLn $ "starting local at " <> C.pack (show $ localPort)
     runTCPServer localSettings $ \client -> do
         (encrypt, decrypt) <- getEncDec method password
-        (clientSource, ()) <- appSource client $$+ initLocal =$ appSink client
+        (clientSource, ()) <- appSource client $$+ initLocal =$= appSink client
         runTCPClient remoteSettings $ \appServer -> do
             (clientSource', ()) <-
-                clientSource $$++ initRemote encrypt =$ appSink appServer
+                clientSource $$++ initRemote encrypt =$= appSink appServer
             race_
-                (clientSource' $$+- cryptConduit encrypt =$ appSink appServer)
-                (appSource appServer $$ cryptConduit decrypt =$ appSink client)
+                (clientSource' $$+- cryptConduit encrypt =$= appSink appServer)
+                (appSource appServer $$ cryptConduit decrypt =$= appSink client)

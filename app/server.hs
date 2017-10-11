@@ -1,8 +1,9 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RecordWildCards   #-}
+module Main (main) where
 
 import           Conduit                   (Sink, await, liftIO, ($$), ($$+),
-                                            ($$+-), (=$))
+                                            ($$+-), (=$=))
 import           Control.Applicative       ((<$>))
 import           Control.Concurrent        (forkIO)
 import           Control.Concurrent.Async  (race_)
@@ -73,5 +74,5 @@ main = do
         let remoteSettings = clientSettings port host
         C.putStrLn $ "connecting " <> host <> ":" <> C.pack (show port)
         runTCPClient remoteSettings $ \appServer -> race_
-            (clientSource $$+- cryptConduit decrypt =$ appSink appServer)
-            (appSource appServer $$ cryptConduit encrypt =$ appSink client)
+            (clientSource $$+- cryptConduit decrypt =$= appSink appServer)
+            (appSource appServer $$ cryptConduit encrypt =$= appSink client)
