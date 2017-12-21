@@ -31,7 +31,7 @@ library:
     - optparse-applicative >=0.11
     - unordered-containers >=0.2
 executables:
-  ssserver:
+  ssserver: &exe
     main: server.hs
     source-dirs: app
     other-extensions:
@@ -43,7 +43,11 @@ executables:
       - conduit >=1.2
       - conduit-combinators >=1.0
       - conduit-extra >=1.1
+      - pipes
+      - pipes-bytestring
+      - pipes-network
       - network >=2.6
+      - network-simple
       - streaming-commons >=0.1.11
     when:
       - condition: (os(windows)) && (arch(x86_64))
@@ -57,27 +61,9 @@ executables:
             - -O2
             - -threaded
   sslocal:
+    <<: *exe
     main: local.hs
-    source-dirs: app
-    other-extensions:
-      - OverloadedStrings
-      - DeriveGeneric
-    dependencies:
-      - shadowsocks
-      - async >=2.0
-      - conduit-combinators >=1.0
-      - conduit-extra >=1.1
-    when:
-      - condition: (os(windows)) && (arch(x86_64))
-        then:
-          ghc-options:
-            - -Wall
-            - -O2
-        else:
-          ghc-options:
-            - -Wall
-            - -O2
-            - -threaded
+
 tests:
   test:
     main: test.hs

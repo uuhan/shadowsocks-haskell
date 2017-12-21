@@ -8,6 +8,9 @@ resolver: lts-8.13
 packages:
   - '.'
 
+extra-deps:
+  - pipes-network-0.6.4.1
+
 extra-lib-dirs:
   - /usr/local/opt/openssl/lib
 extra-include-dirs:
