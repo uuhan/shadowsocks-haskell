@@ -13,6 +13,7 @@ tested-with: GHC==7.10.2
 dependencies:
   - base ==4.*
   - bytestring >=0.9
+  - pipes
 library:
   source-dirs: src
   exposed-modules:
@@ -21,7 +22,6 @@ library:
   dependencies:
     - aeson >=0.7
     - binary >=0.7
-    - conduit-combinators >=1.0
     - containers >=0.5
     - cryptohash >=0.11
     - directory
@@ -40,26 +40,14 @@ executables:
     dependencies:
       - shadowsocks
       - async >=2.0
-      - conduit >=1.2
-      - conduit-combinators >=1.0
-      - conduit-extra >=1.1
-      - pipes
       - pipes-bytestring
       - pipes-network
       - network >=2.6
       - network-simple
       - streaming-commons >=0.1.11
-    when:
-      - condition: (os(windows)) && (arch(x86_64))
-        then:
-          ghc-options:
-            - -Wall
-            - -O2
-        else:
-          ghc-options:
-            - -Wall
-            - -O2
-            - -threaded
+    ghc-options:
+      - -O2
+      - -threaded
   sslocal:
     <<: *exe
     main: local.hs

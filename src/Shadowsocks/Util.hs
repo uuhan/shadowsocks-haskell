@@ -5,7 +5,7 @@
 
 module Shadowsocks.Util
   ( Config (..)
-  , cryptConduit
+  , cryptPipe
   , parseConfigOptions
   , unpackRequest
   , packRequest
@@ -14,7 +14,6 @@ module Shadowsocks.Util
   , SSException(..)
   ) where
 
-import           Conduit               (Conduit, awaitForever, liftIO, yield)
 import           Control.Exception     (Exception, IOException, catch)
 import           Data.Aeson            (FromJSON (..), Value (..), decode',
                                         (.:))
@@ -35,6 +34,7 @@ import           GHC.Generics          (Generic)
 import           Network.Socket        (HostAddress, HostAddress6,
                                         SockAddr (..))
 import           Options.Applicative
+import           Pipes
 import           System.Exit           (exitFailure)
 import           System.IO             (hPutStrLn, stderr)
 
@@ -111,11 +111,11 @@ parseConfigOptions = do
                , method = fromMaybe (method c) (_method o)
                }
 
-cryptConduit :: (ByteString -> IO ByteString)
-             -> Conduit ByteString IO ByteString
-cryptConduit crypt = awaitForever $ \input -> do
-    output <- liftIO $ crypt input
-    yield output
+cryptPipe :: (ByteString -> IO ByteString)
+          -> Pipe ByteString ByteString IO ()
+cryptPipe crypt = for cat $ \input -> do
+  output <- liftIO $ crypt input
+  Pipes.yield output
 
 unpackRequest :: ByteString -> Either AddrType (AddrType, ByteString, Int, ByteString)
 unpackRequest request = case addrType of
