@@ -37,7 +37,7 @@ main = do
               Just (dest, port) -> do
                 C.putStrLn $ "connecting " <> dest <> ":" <> C.pack (show port)
                 connect (C.unpack dest) (show port) $ \(server, _) -> do
-                  C.putStrLn "connect finished"
                   let forward = fromSocket client 4096 >-> cryptPipe decrypt >-> toSocket server
                       back    = fromSocket server 4096 >-> cryptPipe encrypt >-> toSocket client
+                  -- hangs?
                   race_ (runEffect forward) (runEffect back)
