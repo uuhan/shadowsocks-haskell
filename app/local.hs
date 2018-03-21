@@ -39,15 +39,15 @@ initRemote encrypt = do
 
 main :: IO ()
 main = do
-    hSetBuffering stdout NoBuffering
-    Config{..} <- parseConfigOptions
-    C.putStrLn $ "starting local at " <> C.pack (show localPort)
-    serve "*" (show localPort) $ \(client, _) -> do
-      (encrypt, decrypt) <- getEncDec method password
-      connect server (show serverPort) $ \(server, _) -> do
-        runEffect $ ((("closed" <$ fromSocket client 4096) >-> initLocal >-> ("closed" <$ toSocket client)) >~ initRemote encrypt) >-> toSocket server
+  hSetBuffering stdout NoBuffering
+  Config{..} <- parseConfigOptions
+  C.putStrLn $ "starting local at " <> C.pack (show localPort)
+  serve "*" (show localPort) $ \(client, _) -> do
+    (encrypt, decrypt) <- getEncDec method password
+    connect server (show serverPort) $ \(server, _) -> do
+      runEffect $ ((("closed" <$ fromSocket client 4096) >-> initLocal >-> ("closed" <$ toSocket client)) >~ initRemote encrypt) >-> toSocket server
 
-        let forward = fromSocket client 4096 >-> cryptPipe encrypt >-> toSocket server
-            back    = fromSocket server 4096 >-> cryptPipe decrypt >-> toSocket client
+      let forward = fromSocket client 4096 >-> cryptPipe encrypt >-> toSocket server
+          back    = fromSocket server 4096 >-> cryptPipe decrypt >-> toSocket client
 
-        race_ (runEffect forward) (runEffect back)
+      race_ (runEffect forward) (runEffect back)
