@@ -12,7 +12,6 @@ import           GHC.IO.Handle            (BufferMode (NoBuffering),
                                            hSetBuffering)
 import           GHC.IO.Handle.FD         (stdout)
 
-import           Shadowsocks.Encrypt      (getEncDec)
 import           Shadowsocks.Util
 import           Pipes
 import           Pipes.Network.TCP
@@ -42,12 +41,11 @@ main = do
   hSetBuffering stdout NoBuffering
   Config{..} <- parseConfigOptions
   C.putStrLn $ "starting local at " <> C.pack (show localPort)
-  serve "*" (show localPort) $ \(client, _) -> do
-    (encrypt, decrypt) <- getEncDec method password
+  serve "*" (show localPort) $ \(client, _) ->
     connect server (show serverPort) $ \(server, _) -> do
-      runEffect $ ((("closed" <$ fromSocket client 4096) >-> initLocal >-> ("closed" <$ toSocket client)) >~ initRemote encrypt) >-> toSocket server
+      runEffect $ ((("closed" <$ fromSocket client 4096) >-> initLocal >-> ("closed" <$ toSocket client)) >~ initRemote pure) >-> toSocket server
 
-      let forward = fromSocket client 4096 >-> cryptPipe encrypt >-> toSocket server
-          back    = fromSocket server 4096 >-> cryptPipe decrypt >-> toSocket client
+      let forward = fromSocket client 4096 >-> cryptPipe pure >-> toSocket server
+          back    = fromSocket server 4096 >-> cryptPipe pure >-> toSocket client
 
       race_ (runEffect forward) (runEffect back)
