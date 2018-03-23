@@ -12,7 +12,7 @@ bug-reports: https://github.com/rnons/shadowsocks-haskell/issues
 tested-with: GHC==7.10.2
 dependencies:
   - base ==4.*
-  - bytestring >=0.9
+  - bytestring
   - pipes
 library:
   source-dirs: src
@@ -20,16 +20,16 @@ library:
     - Shadowsocks.Encrypt
     - Shadowsocks.Util
   dependencies:
-    - aeson >=0.7
-    - binary >=0.7
-    - containers >=0.5
-    - cryptohash >=0.11
+    - aeson
+    - binary
+    - containers
+    - cryptohash
     - directory
-    - HsOpenSSL >=0.11
-    - iproute >=1.4
-    - network >=2.6
-    - optparse-applicative >=0.11
-    - unordered-containers >=0.2
+    - HsOpenSSL
+    - iproute
+    - network
+    - optparse-applicative
+    - unordered-containers
 executables:
   ssserver: &exe
     main: server.hs
@@ -39,12 +39,12 @@ executables:
       - DeriveGeneric
     dependencies:
       - shadowsocks
-      - async >=2.0
+      - async
       - pipes-bytestring
       - pipes-network
-      - network >=2.6
+      - network
       - network-simple
-      - streaming-commons >=0.1.11
+      - streaming-commons
     ghc-options:
       - -O2
       - -threaded
@@ -58,10 +58,10 @@ tests:
     ghc-options:
       - -Wall
     dependencies:
-      - binary >=0.7
-      - containers >=0.5
-      - cryptohash >=0.11
-      - process >=1.1
-      - HUnit >=1.2
+      - binary
+      - containers
+      - cryptohash
+      - process
+      - HUnit
 data-files:
   - config.json
