@@ -19,12 +19,14 @@ import           Pipes.Network.TCP
 initLocal :: Pipe ByteString ByteString IO ByteString
 initLocal = do
   void await
-  yield "\x05\x00"
+  yield "\x05\x00" -- socks5 无认证
+      -- VER : METHOD
   request <- await
   let (addrType, destAddr, destPort, _) =
           either (error . show . UnknownAddrType) id (unpackRequest $ S.drop 3 request)
       packed = packRequest addrType destAddr destPort
   yield "\x05\x00\x00\x01\x00\x00\x00\x00\x10\x10"
+      -- VER : REP : RSV : ATYPE : BND.ADDR : BND.PORT
   liftIO $ C.putStrLn $ "connecting " <> destAddr
                                       <> ":" <> C.pack (show destPort)
   return packed
