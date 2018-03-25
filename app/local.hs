@@ -12,9 +12,9 @@ import           GHC.IO.Handle            (BufferMode (NoBuffering),
                                            hSetBuffering)
 import           GHC.IO.Handle.FD         (stdout)
 
-import           Shadowsocks.Util
 import           Pipes
 import           Pipes.Network.TCP
+import           Shadowsocks.Util
 
 initLocal :: Pipe ByteString ByteString IO ByteString
 initLocal = do
@@ -45,7 +45,10 @@ main = do
   C.putStrLn $ "starting local at " <> C.pack (show localPort)
   serve "*" (show localPort) $ \(client, _) ->
     connect server (show serverPort) $ \(server, _) -> do
-      runEffect $ ((("closed" <$ fromSocket client 4096) >-> initLocal >-> ("closed" <$ toSocket client)) >~ initRemote pure) >-> toSocket server
+      let destPacked = (error "client closed" <$ fromSocket client 4096)
+                         >-> initLocal
+                         >-> (error "server closed" <$ toSocket client)
+      runEffect $ destPacked >~ initRemote pure >-> toSocket server
 
       let forward = fromSocket client 4096 >-> cryptPipe pure >-> toSocket server
           back    = fromSocket server 4096 >-> cryptPipe pure >-> toSocket client
