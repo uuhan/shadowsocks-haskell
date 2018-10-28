@@ -1,6 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 module Shadowsocks.Encrypt
-  ( getEncDec)
+  ( getEncDec )
   where
 
 import           Control.Concurrent.MVar (isEmptyMVar, newEmptyMVar, putMVar,

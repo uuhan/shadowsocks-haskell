@@ -15,6 +15,7 @@ import           GHC.IO.Handle.FD         (stdout)
 import           Pipes
 import           Pipes.Network.TCP
 import           Shadowsocks.Util
+import           Shadowsocks.Encrypt (getEncDec)
 
 initRemote :: (ByteString -> IO ByteString)
            -> Consumer ByteString IO (Maybe (ByteString, Int))
@@ -29,13 +30,14 @@ main = do
   hSetBuffering stdout NoBuffering
   Config{..} <- parseConfigOptions
   C.putStrLn $ "starting server at " <> C.pack (show serverPort)
-  serve "*" (show serverPort) $ \(client, _) ->
-    runEffect ((Nothing <$ fromSocket client 64) >-> initRemote pure) >>=
+  serve "*" (show serverPort) $ \(client, _) -> do
+    (encrypt, decrypt) <- getEncDec method password
+    runEffect ((Nothing <$ fromSocket client 64) >-> initRemote decrypt) >>=
       \case Nothing -> error "connection closed unexpected"
             Just (dest, port) -> do
               C.putStrLn $ "connecting " <> dest <> ":" <> C.pack (show port)
               connect (C.unpack dest) (show port) $ \(server, _) -> do
-                let forward = fromSocket client 64 >-> cryptPipe pure >-> toSocket server
-                    back    = fromSocket server 64 >-> cryptPipe pure >-> toSocket client
+                let forward = fromSocket client 64 >-> cryptPipe decrypt >-> toSocket server
+                    back    = fromSocket server 64 >-> cryptPipe encrypt >-> toSocket client
                 -- hangs?
                 race_ (runEffect forward) (runEffect back)

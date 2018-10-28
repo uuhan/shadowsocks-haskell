@@ -15,6 +15,7 @@ import           GHC.IO.Handle.FD         (stdout)
 import           Pipes
 import           Pipes.Network.TCP
 import           Shadowsocks.Util
+import           Shadowsocks.Encrypt (getEncDec)
 
 initLocal :: Pipe ByteString ByteString IO ByteString
 initLocal = do
@@ -45,12 +46,13 @@ main = do
   C.putStrLn $ "starting local at " <> C.pack (show localPort)
   serve "*" (show localPort) $ \(client, _) ->
     connect server (show serverPort) $ \(server, _) -> do
+      (encrypt, decrypt) <- getEncDec method password
       let destPacked = (error "client closed" <$ fromSocket client 4096)
                          >-> initLocal
                          >-> (error "server closed" <$ toSocket client)
-      runEffect $ destPacked >~ initRemote pure >-> toSocket server
+      runEffect $ destPacked >~ initRemote encrypt >-> toSocket server
 
-      let forward = fromSocket client 4096 >-> cryptPipe pure >-> toSocket server
-          back    = fromSocket server 4096 >-> cryptPipe pure >-> toSocket client
+      let forward = fromSocket client 4096 >-> cryptPipe encrypt >-> toSocket server
+          back    = fromSocket server 4096 >-> cryptPipe decrypt >-> toSocket client
 
       race_ (runEffect forward) (runEffect back)
